@@ -11,14 +11,14 @@
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org">
-    <img alt="Travis build status" src="https://travis-ci.org/danielbayerlein/dashboard.svg?branch=master">
+  <a href="https://github.com/danielbayerlein/vallox-api/actions">
+    <img alt="Actions Status" src="https://github.com/danielbayerlein/dashboard/workflows/CI/badge.svg">
   </a>
   <a href="https://standardjs.com">
     <img alt="JavaScript Style Guide" src="https://img.shields.io/badge/code_style-standard-brightgreen.svg">
   </a>
-  <a href="https://greenkeeper.io/">
-    <img alt="Greenkeeper badge" src="https://badges.greenkeeper.io/danielbayerlein/dashboard.svg">
+  <a href="https://dependabot.com">
+    <img alt="Dependabot Status" src="https://api.dependabot.com/badges/status?host=github&repo=danielbayerlein/dashboard">
   </a>
   <a href="https://deploy.now.sh/?repo=https://github.com/danielbayerlein/dashboard">
     <img alt="Deploy to now" src="https://deploy.now.sh/static/button.svg" height="20">
@@ -35,7 +35,9 @@
 * [Create a Dashboard](#create-a-dashboard)
 * [Available Widgets](#available-widgets)
   * [DateTime](#datetime)
-  * [Jenkins](#jenkins)
+  * [Jenkins Job Status](#jenkins-job-status)
+  * [Jenkins Job Health](#jenkins-job-health)
+  * [Jenkins Build Duration](#jenkins-build-duration)
   * [JIRA Issue Count](#jira-issue-count)
   * [JIRA Sprint Days Remaining](#jira-sprint-days-remaining)
   * [Bitbucket PullRequest Count](#bitbucket-pullrequest-count)
@@ -44,6 +46,7 @@
   * [SonarQube](#sonarqube)
   * [Elasticsearch Hit Count](#elasticsearch-hit-count)
   * [GitHub Issue Count](#github-issue-count)
+  * [Title](#title)
 * [Available Themes](#available-themes)
   * [light](#light)
   * [dark](#dark)
@@ -87,7 +90,7 @@ import DateTime from '../components/widgets/datetime'
 import lightTheme from '../styles/light-theme'
 
 export default () => (
-  <Dashboard theme={lightTheme}>
+  <Dashboard theme={lightTheme} name='Unicorn Dashboard'>
     <DateTime />
   </Dashboard>
 )
@@ -113,26 +116,80 @@ import DateTime from '../components/widgets/datetime'
 
 * `interval`: Refresh interval in milliseconds (Default: `10000`)
 
-### [Jenkins](./components/widgets/jenkins/index.js)
+### [Jenkins Job Status](./components/widgets/jenkins/job-status.js)
 
 #### Example
 
 ```javascript
-import Jenkins from '../components/widgets/jenkins'
+import JenkinsJobStatus from '../components/widgets/jenkins/job-status'
 
-<Jenkins
+<JenkinsJobStatus
   url='https://builds.apache.org'
   jobs={[
-    { label: 'Hadoop', path: 'Hadoop-trunk-Commit' },
-    { label: 'Jackrabbit', path: 'Jackrabbit-trunk' },
-    { label: 'JMeter', path: 'JMeter-trunk' }
+    { label: 'JMeter', path: 'JMeter-trunk' },
+    { label: 'Log4j Kotlin', path: 'Log4jKotlin', branch: 'master' }
   ]}
 />
 ```
 
+For Jenkins multibranch projects add `branch` to the object.
+
 #### props
 
-* `title`: Widget title (Default: `Jenkins`)
+* `title`: Widget title (Default: `Job Status`)
+* `interval`: Refresh interval in milliseconds (Default: `300000`)
+* `url`: Jenkins URL
+* `jobs`: List of all jobs
+* `authKey`: Credential key, defined in [auth.js](./auth.js)
+
+### [Jenkins Job Health](./components/widgets/jenkins/job-health.js)
+
+#### Example
+
+```javascript
+import JenkinsJobHealth from '../components/widgets/jenkins/job-health'
+
+<JenkinsJobHealth
+  url='https://builds.apache.org'
+  jobs={[
+    { label: 'JMeter', path: 'JMeter-trunk' },
+    { label: 'Log4j Kotlin', path: 'Log4jKotlin', branch: 'master' }
+  ]}
+/>
+```
+
+For Jenkins multibranch projects add `branch` to the object.
+
+#### props
+
+* `title`: Widget title (Default: `Job Health`)
+* `interval`: Refresh interval in milliseconds (Default: `300000`)
+* `url`: Jenkins URL
+* `jobs`: List of all jobs
+* `authKey`: Credential key, defined in [auth.js](./auth.js)
+
+
+### [Jenkins Build Duration](./components/widgets/jenkins/build-duration.js)
+
+#### Example
+
+```javascript
+import JenkinsBuildDuration from '../components/widgets/jenkins/build-duration'
+
+<JenkinsBuildDuration
+  url='https://builds.apache.org'
+  jobs={[
+    { label: 'JMeter', path: 'JMeter-trunk' },
+    { label: 'Log4j Kotlin', path: 'Log4jKotlin', branch: 'master' }
+  ]}
+/>
+```
+
+For Jenkins multibranch projects add `branch` to the object.
+
+#### props
+
+* `title`: Widget title (Default: `Build Duration`)
 * `interval`: Refresh interval in milliseconds (Default: `300000`)
 * `url`: Jenkins URL
 * `jobs`: List of all jobs
@@ -151,6 +208,8 @@ import JiraIssueCount from '../components/widgets/jira/issue-count'
   query='type=Bug AND project="Bitbucket Server" AND resolution=Unresolved ORDER BY priority DESC,created DESC'
 />
 ```
+
+For Jenkins multibranch projects add `branch` to the object.
 
 #### props
 
@@ -296,7 +355,7 @@ import ElasticsearchHitCount from '../components/widgets/elasticsearch/hit-count
 #### Example
 
 ```javascript
-import GitHubIssueCount from '../components/github/issue-count'
+import GitHubIssueCount from '../components/widgets/github/issue-count'
 
 <GitHubIssueCount
   owner='danielbayerlein'
@@ -311,6 +370,16 @@ import GitHubIssueCount from '../components/github/issue-count'
 * `owner`: Owner of the repository
 * `repository`: Name of the repository
 * `authKey`: Credential key, defined in [auth.js](./auth.js)
+
+### [Title](./components/widgets/title/index.js)
+
+#### Example
+
+```javascript
+import Title from '../components/widgets/title'
+
+<Title>API Status</Title>
+```
 
 ## Available Themes
 
@@ -367,7 +436,7 @@ Any widget can authenticate itself, should your server expect this. We use
      query='type=Bug AND project="Bitbucket Server" AND resolution=Unresolved ORDER BY priority DESC,created DESC'
    />
    ```
-3. Create a `.env` file in the root directory of your project. Add
+3. Create a `.env` file or rename `.env.example` to `.env` in the root directory of your project. Add
    environment-specific variables on new lines in the form of `NAME=VALUE`.
    For example:
    ```dosini
